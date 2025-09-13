@@ -1,0 +1,423 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>be1.ru</title>
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipbuk: Mebel Project</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Əsas üslublar --- */
+        :root {
+            --book-width: 320px;
+            --book-height: 450px;
+            --page-flip-duration: 1.2s;
+            --background-color: #f0f2f5;
+            --book-background: #ffffff;
+            --text-color: #333;
+            --header-color: #1a1a1a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        /* --- 3D perspektiv üçün konteyner --- */
+        .flipbook-container {
+            perspective: 2000px;
+            margin: auto;
+            position: relative;
+            transform: translateX(6cm); /* Сдвиг на 6 см вправо */
+        }
+
+        /* --- Flipbukun özü --- */
+        .flipbook {
+            width: calc(var(--book-width) * 2);
+            height: var(--book-height);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer; /* Добавляем курсор, чтобы показать, что это кликабельно */
+        }
+
+        /* --- Hər səhifə üçün üslublar --- */
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+        }
+        
+        /* Kitabın sağ yarısı (üz qabığı, çevrilməyən səhifələr) */
+        .page--right {
+            left: 50%;
+            width: 50%;
+        }
+
+        /* Sol yarısı (çevrilən səhifələr) */
+        .page--left {
+            width: 50%;
+            transform-origin: left center;
+            transition: transform var(--page-flip-duration) ease-in-out;
+            border-left: 1px solid #e0e0e0; /* Cildləmə effekti */
+        }
+
+        .page.flipped {
+            transform: rotateY(-180deg);
+        }
+
+        /* --- Səhifə məzmunu (ön və arxa tərəflər) --- */
+        .page-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: var(--book-background);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            border-radius: 0 8px 8px 0; /* Yalnız xarici künclərin yuvarlaqlaşdırılması */
+        }
+
+        .page-content.front {
+            z-index: 1;
+        }
+
+        .page-content.back {
+            transform: rotateY(180deg);
+        }
+        
+        /* Birinci və sonuncu səhifənin stili */
+        .cover-front,
+        .page--left.first-page .front {
+           border-radius: 0 8px 8px 0;
+        }
+        .cover-back,
+        #page-final .back {
+            border-radius: 8px 0 0 8px;
+        }
+        #page-final .front {
+             border-radius: 0 8px 8px 0;
+        }
+
+        /* --- Məzmunun stili --- */
+        .page-content h1, .page-content h2 {
+            color: var(--header-color);
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        /* Стили для заголовка "Qonaq otağı" */
+        .product-page h2 {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 1.5rem;
+        }
+
+        .page-content p {
+            line-height: 1.6;
+            text-align: center;
+        }
+        
+        /* Üz qabığı */
+        .cover-content {
+            text-align: center;
+            position: relative;
+            height: 100%;
+            padding: 2rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cover-content img.logo {
+            width: 80%;
+            height: auto;
+            position: relative;
+            top: 14px;
+            left: 20px;
+        }
+        .cover-content h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            white-space: nowrap;
+            color: black; 
+        }
+        
+        /* Обновленные стили для главной обложки */
+        .cover-with-bg .cover-content {
+            padding-bottom: 0;
+        }
+
+        /* Mebel səhifələri */
+        .product-page img {
+            width: 250px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Стиль для логотипа, чтобы он находился внутри рамки */
+        .kitchen-logo {
+            width: 30%; /* Уменьшаем размер, чтобы поместить в рамку */
+            height: auto;
+            position: absolute;
+            top: 25%; /* Положение логотипа по вертикали */
+            left: 50%; /* Положение логотипа по горизонтали */
+            transform: translate(-50%, -50%); /* Точно центрируем */
+            z-index: 10; /* Убедимся, что он поверх изображения */
+        }
+        .kitchen-page {
+            position: relative; /* Создаем контекст позиционирования для дочерних элементов */
+        }
+
+        /* Новая страница с изображениями */
+        .image-page .page-content {
+            padding: 0;
+            background-color: var(--book-background);
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .image-page .page-content.front {
+            background-image: url('https://i.ibb.co/4nhxQ5Jn/index-15-2.jpg');
+        }
+
+        .image-page .page-content.back {
+            background-image: url('https://i.ibb.co/0jXxbNNy/index-14-2.jpg');
+        }
+        
+        /* Новый стиль для обложки с фоновым изображением */
+        .cover-with-bg {
+            background-image: url('https://i.ibb.co/V0hVMGYF/FB-IMG-1755777620755.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        /* Arxa üz qabığı */
+        .contact-page-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        .contact-page-content p {
+            margin: 0.4rem 0;
+        }
+        .contact-page-content .barcode {
+            margin-bottom: 1.5rem;
+            max-width: 120px;
+        }
+        
+        /* Adaptivlik */
+        @media (max-width: 900px) {
+            :root {
+                --book-width: 300px;
+                --book-height: 420px;
+            }
+            .page-content {
+                padding: 1.5rem;
+            }
+            .cover-content h1 {
+                font-size: 1.5rem;
+            }
+        }
+        @media (max-width: 600px) {
+            :root {
+                --book-width: 150px;
+                --book-height: 220px;
+            }
+            .page-content {
+                padding: 1rem;
+                font-size: 0.8rem;
+            }
+             .page-content h1, .page-content h2 {
+                font-size: 1rem;
+             }
+            .contact-info {
+                font-size: 0.7rem;
+            }
+            .price-list-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flipbook-container">
+        <div class="flipbook">
+            <!-- Обложка (теперь перелистываемая) -->
+            <div class="page page--left first-page" id="page-1">
+                <div class="page-content front cover-with-bg">
+                    <div class="cover-content">
+                        <img src="https://i.ibb.co/6RL1z0SB/1000027007-removebg-preview.png" alt="Mebel Project Loqosu" class="logo">
+                        <h1>hər növ mebel hazirlamasi</h1>
+                    </div>
+                </div>
+                <div class="page-content back product-page">
+                    <h2>Qonaq otağı</h2>
+                    <img src="https://i.ibb.co/zTFrFLyk/IMG-20250822-WA0034.jpg" alt="Yeni qonaq otağı üçün mebel">
+                    <p>Qonaq otağınız üçün müasir və dəbli həllər.</p>
+                </div>
+            </div>
+
+            <!-- Səhifə 2: Yataq otağı / Qarderoblar -->
+            <div class="page page--left" id="page-2">
+                <div class="page-content front product-page">
+                    <h2>Yataq otağı</h2>
+                    <!-- Обновленная фотография -->
+                    <img src="https://i.ibb.co/nMkJ0bBf/FB-IMG-1756924853327.jpg" alt="Yataq otağı üçün mebel">
+                    <p>Tam istirahətiniz üçün rahatlıq və komfort.</p>
+                </div>
+                <div class="page-content back product-page">
+                    <h2>Qarderoblar</h2>
+                    <!-- Обновленная фотография -->
+                    <img src="https://i.ibb.co/NGrWnym/IMG-20240228-WA0000.jpg" alt="Qarderoblar">
+                    <p>Geniş və funksional dolab-kupələr.</p>
+                </div>
+            </div>
+            
+            <!-- Səhifə 3: Uşaq otağı / Mətbəx -->
+            <div class="page page--left" id="page-3">
+                <div class="page-content front product-page">
+                    <h2>Uşaq otağı</h2>
+                    <!-- Обновленная фотография -->
+                    <img src="https://i.ibb.co/Mk7sP6Kw/IMG-20240223-WA0018.jpg" alt="Uşaq otağı üçün mebel">
+                    <p>Uşaq otağı üçün parlaq və təhlükəsiz mebel.</p>
+                </div>
+                <div class="page-content back product-page kitchen-page">
+                    <h2>Mətbəx</h2>
+                    <!-- Обновленная фотография -->
+                    <img src="https://i.ibb.co/VcP76Rnv/FB-IMG-1756924864361.jpg" alt="Mətbəx üçün mebel">
+                    <p>Sifarişlə erqonomik və gözəl mətbəxlər.</p>
+                </div>
+            </div>
+            
+            <!-- Səhifə 4: Ofis mebeli -->
+             <div class="page page--left" id="page-4">
+                 <div class="page-content front product-page">
+                    <h2>Ofis mebeli</h2>
+                    <!-- Обновленная фотография -->
+                    <img src="https://i.ibb.co/CpHw8QGf/Screenshot-20250911-210112-Google-2.jpg" alt="Ofis mebeli">
+                    <p>İş yeriniz üçün rahat və funksional mebel.</p>
+                </div>
+                 <div class="page-content back product-page">
+                    <h2>Kupe şkafları</h2>
+                    <img src="https://i.ibb.co/TB7Rq7gK/IMG-20250822-WA0033.jpg" alt="Kupe şkafları">
+                    <p>Sizin ölçülərinizə və zövqünüzə uyğun şkaflar.</p>
+                </div>
+            </div>
+
+            <!-- Последняя страница с двумя фотографиями -->
+            <div class="page page--left image-page" id="page-final">
+                 <div class="page-content front">
+                 </div>
+                 <div class="page-content back">
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const flipbook = document.querySelector('.flipbook');
+            const pages = document.querySelectorAll('.page--left');
+            const totalPages = pages.length;
+            let currentPage = 0;
+            const flipInterval = 4000;
+            let flipTimer;
+
+            // Səhifələrin z-index-lərini təyin edirik
+            pages.forEach((page, index) => {
+                page.style.zIndex = totalPages - index;
+            });
+
+            function flipNextPage() {
+                if (currentPage < totalPages) {
+                    const pageToFlip = pages[currentPage];
+                    pageToFlip.classList.add('flipped');
+                    pageToFlip.style.zIndex = totalPages + currentPage + 1;
+                    currentPage++;
+                } else {
+                    resetBook();
+                }
+            }
+
+            function flipPrevPage() {
+                if (currentPage > 0) {
+                    currentPage--;
+                    const pageToUnflip = pages[currentPage];
+                    pageToUnflip.classList.remove('flipped');
+                    pageToUnflip.style.zIndex = totalPages - currentPage;
+                }
+            }
+            
+            function resetBook() {
+                currentPage = 0;
+                pages.forEach((page, index) => {
+                    page.classList.remove('flipped');
+                    page.style.zIndex = totalPages - index;
+                });
+            }
+
+            flipbook.addEventListener('click', (e) => {
+                // Прекращаем автоматическое перелистывание при клике
+                clearInterval(flipTimer);
+
+                const bookRect = flipbook.getBoundingClientRect();
+                const clickX = e.clientX - bookRect.left;
+
+                // Определяем, на какую половину книги нажали
+                if (clickX < bookRect.width / 2) {
+                    // Нажали на левую половину
+                    flipPrevPage();
+                } else {
+                    // Нажали на правую половину
+                    flipNextPage();
+                }
+
+                // Запускаем автоматическое перелистывание
+                flipTimer = setInterval(flipNextPage, flipInterval);
+            });
+
+            // Запускаем автоматическое перелистывание
+            flipTimer = setInterval(flipNextPage, flipInterval);
+        });
+    </script>
+
+</body>
+</html>
+
+</body>
+</html>
